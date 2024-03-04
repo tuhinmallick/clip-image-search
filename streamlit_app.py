@@ -1,81 +1,134 @@
-import json
-
-import requests
 import streamlit as st
-
-import clip_image_search.utils as utils
-
-
-intro = """
-The database contains 25,000 images from the Unsplash Dataset. You can either
-
-- search them using a natural language description (e.g., animals in jungle), or
-- find similar images by providing an image URL (e.g. https://i.imgur.com/KRNOn22.jpeg).
-
-The algorithm will return the ten most relevant images.
-"""
+from PIL import Image
+import numpy as np
+from io import BytesIO
+import requests
+import pandas as pd
+import base64
+from sentence_transformers import SentenceTransformer
+from qdrant_client import QdrantClient
+from qdrant_client.http import models as rest
 
 
-def handle_query(query, input_type, max_attempts=3):
-    if not query:
-        st.sidebar.error("Please enter a query.")
-        return
+def preprocess_image_for_clip(image: Image, target_size: int = 224) -> np.ndarray:
+    """
+    Preprocess the image for the CLIP model.
+    - Ensure image is a PIL Image
+    - Resize and normalize according to CLIP's expected format
+    """
+    # Ensure the input is a PIL Image, this step is just for demonstration and can be removed if confirmed
+    if not isinstance(image, Image.Image):
+        raise ValueError("The provided image is not a PIL Image object")
+    
+    # Resize the image
+    image_resized = image.resize((target_size, target_size))
 
-    if input_type == "image":
-        st.sidebar.image(query)
+    # Convert to RGB if not already
+    if image_resized.mode != 'RGB':
+        image_resized = image_resized.convert('RGB')
 
-    for i in range(max_attempts):
-        if i == 0:
-            message = "Wait for it..."
-        else:
-            message = "The server needs some time to warm up..."
-        with st.spinner(message):
-            response = make_post_request(query, input_type)
-            if response.status_code != 503:
-                break
+    # Convert to NumPy array for any further processing if needed
+    image_array = np.array(image_resized)
 
-    display_results(response)
+    # Normalize the image as needed for your model
+    # ... normalization steps here
 
-
-def make_post_request(query, input_type):
-    headers = {
-        "Content-type": "application/json",
-        "x-api-key": st.secrets["api_key"],
-    }
-    data = json.dumps({"query": query, "input_type": input_type})
-    response = requests.post(st.secrets["api_endpoint"], data=data, headers=headers)
-    return response
+    return image_array
 
 
-def display_results(response):
-    response = response.json()
-    if response.get("status_code") != 200:
-        st.error(response["message"])
-        return
+def create_qdrant_client():
+    try:
+        qdrant_client = QdrantClient(
+            url="https://1e1e320e-da3b-42e3-933c-b1558ed8eb60.europe-west3-0.gcp.cloud.qdrant.io:6333",
+            api_key="Kap2QDWaKY760_fC_KxInfWMmi0WbG6rSJfXCqrteFRAvzJKRsvMdg",
+        )
+    except Exception:
+        # Docker is unavailable in Google Colab so we switch to local
+        # mode available in Python SDK
+        qdrant_client = QdrantClient(":memory:")
+    
+    return qdrant_client
 
-    cols = st.columns(2)
-    col_heights = [0, 0]
-    for hit in response["body"]:
-        image_url = hit["_source"]["url"]
-        image = utils.load_image_from_url(f"{image_url}?w=360")
-        col_id = 0 if col_heights[0] <= col_heights[1] else 1
-        cols[col_id].image(image)
-        col_heights[col_id] += image.height
+def pillow_image_to_base64(image: Image) -> str:
+    """
+    Convert a Pillow image to a base64 encoded string that can be used as an image
+    source in HTML. If the image has an alpha channel or is in palette mode, it will be converted to 'RGB'.
+    :param image: Pillow Image object
+    :return: base64 encoded string
+    """
+    buffered = BytesIO()
+    
+    # Convert RGBA to RGB if necessary
+    if image.mode == 'RGBA' or image.mode == 'P':
+        image = image.convert('RGB')
+        
+    
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return f"data:image/jpeg;base64,{img_str}"
 
+def format_payload(payload):
+    return ''.join([f"<tr><td>{key}</td><td>{value}</td></tr>" for key, value in payload.items() if key != 'Embedding'])
+
+
+
+class ImageProcessor:
+    def preprocess_and_encode(self, image):
+        model = SentenceTransformer("clip-ViT-B-32")
+        image_array = preprocess_image_for_clip(image)
+        return model.encode(image)
+
+def reverse_image_search(processor, query_image, limit=2):
+    # Preprocess the image and encode it to get the embedding
+    query_embedding = processor.preprocess_and_encode(query_image)
+    
+    # Retrieve search results from Qdrant with the specified limit
+    results = create_qdrant_client().search(
+        collection_name="product-similarity-search-test-1",
+        query_vector=query_embedding,
+        with_payload=True,
+        limit=limit,
+    )
+
+    for idx, result in enumerate(results):
+        # Remove the 'Embedding' field from the payload
+        payload = {k: v for k, v in result.payload.items() if k != 'Embedding'}
+        
+        # Display the image
+        if 'LocalImage' in payload:
+            local_image_path = payload["variant_featured_image"]
+            st.image(local_image_path, width=150, caption=f"Product {idx + 1}")
+            del payload['LocalImage']  # Remove the image path so it won't be in the DataFrame
+        
+        # Filter out 'unknown' values
+        filtered_payload = {k: v for k, v in payload.items() if not (isinstance(v, str) and v.lower() == 'unknown')}
+        
+        # Display the rest of the information as a table
+        df = pd.DataFrame(list(filtered_payload.items()), columns=['Attribute', 'Value'])
+        st.table(df)
 
 def main():
-    st.set_page_config(page_title="Image Search Engine")
+    # Set Streamlit page configuration
+    st.set_page_config(page_title="Manobo Market Intelligence")
 
-    input_type = st.sidebar.radio("Query by", ("text", "image"))
-    query = st.sidebar.text_input("Enter text/image URL here:")
-    submit = st.sidebar.button("Submit")
+    # Sidebar controls
+    with st.sidebar:
+        st.title("Controls")
+        processor = ImageProcessor()
+        uploaded_file = st.file_uploader("Upload a product image:", type=['png', 'jpg', 'jpeg'])
+        
+        # Let the user decide how many similar images to retrieve
+        num_similar_images = st.number_input("Number of similar images to retrieve", min_value=1, value=2, step=1)
 
-    st.title("Image Search Engine")
-    if submit:
-        handle_query(query, input_type)
-    else:
-        st.write(intro)
+        search_button = st.button('Search')
 
+    # Main area for displaying results
+    st.title("Reverse Image Search for Jewelry Products")
+
+    # When the 'Search' button is pressed and an image is provided, perform the search
+    if search_button and uploaded_file:
+        query_image = Image.open(uploaded_file)
+        reverse_image_search(processor, query_image, limit=num_similar_images)
 
 if __name__ == "__main__":
     main()
