@@ -123,7 +123,7 @@ def main():
         search_button = st.button('Search')
 
     # Main area for displaying results
-    st.title("Reverse Image Search for Jewelry Products")
+    st.title("Manobo Style Sage")
 
     # When the 'Search' button is pressed and an image is provided, perform the search
     if search_button and uploaded_file:
