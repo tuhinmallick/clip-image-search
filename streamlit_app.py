@@ -74,13 +74,13 @@ class ImageProcessor:
         image_array = preprocess_image_for_clip(image)
         return model.encode(image)
 
-def generate_html_table(data, image_column_name='variant_featured_image'):
+def generate_html_table(results, keys):
     # Start the HTML string for the table
     html = """
     <style>
     .custom-table {
         display: block;
-        max-height: 600x;
+        max-height: 600px;  /* Corrected from 600x to 600px */
         overflow-y: auto;
         white-space: nowrap;
     }
@@ -109,16 +109,19 @@ def generate_html_table(data, image_column_name='variant_featured_image'):
     </tr>
     """
 
-    # Loop through each row in the DataFrame
-    for _, row in data.iterrows():
-        image_url = row[image_column_name] if image_column_name in row else ''
+    # Iterate over each result and create a row in the table
+    for result in results:
+        payload = result.payload
         html += "<tr>"
-        html += f"<td><img src='{image_url}' alt='Product Image'></td>"  # Insert the image
-        html += f"<td>{row['variant_title']}</td>"
-        html += f"<td>{row['product_title']}</td>"
-        html += f"<td>{row['product_vendor']}</td>"
-        html += f"<td>{row['product_handle']}</td>"
-        html += f"<td>{row['variant_price']}</td>"
+        # Add the image cell using the 'variant_featured_image' key
+        image_url = payload.get('variant_featured_image', '')
+        html += f"<td><img src='{image_url}' alt='Product Image'></td>"
+
+        # Add other cells based on keys
+        for key in keys:
+            if key != 'variant_featured_image':  # Exclude image URL from table cells
+                value = payload.get(key, '')
+                html += f"<td>{value}</td>"
         html += "</tr>"
 
     html += "</table>"
@@ -143,33 +146,8 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     # Define the keys you want to extract
     keys = ['variant_title', 'product_title', 'product_vendor', 'product_handle', 'variant_price', 'variant_featured_image']
 
-    # Prepare a dictionary to hold your data
-    data = {key: [] for key in keys}  # This initializes a list for each key
-
-    # Iterate over each result and collect the data
-    for result in results:
-        for key in keys:
-            # If the key exists in the result payload, append the value to the correct list
-            # If the key does not exist, append a None or some default value
-            data[key].append(result.payload.get(key, None))
-
-    # Now, convert the dictionary to a DataFrame
-    # The keys become the column headers, and the lists become the columns
-    df = pd.DataFrame(data)
-
-    # Transpose the DataFrame to have keys in the first column and product details in the subsequent columns
-    df_transposed = df.transpose()
-
-    # You now need to make sure that the list you're assigning to df_transposed.columns
-    # has the same length as the number of columns in df_transposed.
-    # Assuming df initially had the same number of columns as the number of keys
-    new_columns = [f'Product {i+1}' for i in range(df_transposed.shape[1])]
-
-    # Assign the new columns to the DataFrame
-    df_transposed.columns = new_columns
-
     # Display the HTML in the Streamlit app
-    st.markdown(generate_html_table(df), unsafe_allow_html=True)
+    st.markdown(generate_html_table(results, keys), unsafe_allow_html=True)
 
 def main():
     # Set Streamlit page configuration
