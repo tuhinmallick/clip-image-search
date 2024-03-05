@@ -78,7 +78,7 @@ class ImageProcessor:
         image_array = preprocess_image_for_clip(image)
         return model.encode(image)
 
-def reverse_image_search(processor, query_image, limit=2):
+def reverse_image_search(processor, query_image, limit=2, similarity_threshold =0.5):
     # Preprocess the image and encode it to get the embedding
     query_embedding = processor.preprocess_and_encode(query_image)
     
@@ -88,6 +88,7 @@ def reverse_image_search(processor, query_image, limit=2):
         query_vector=query_embedding,
         with_payload=True,
         limit=limit,
+        score_threshold=similarity_threshold,
     )
 
     for idx, result in enumerate(results):
@@ -120,6 +121,9 @@ def main():
         # Let the user decide how many similar images to retrieve
         num_similar_images = st.number_input("Number of similar images to retrieve", min_value=1, value=2, step=1)
 
+        # Let the user decide how many similar images to retrieve
+        similarity_threshold = st.number_input("Similarity threshold", min_value=0, value=0.5, step=1)
+
         search_button = st.button('Search')
 
     # Main area for displaying results
@@ -128,7 +132,7 @@ def main():
     # When the 'Search' button is pressed and an image is provided, perform the search
     if search_button and uploaded_file:
         query_image = Image.open(uploaded_file)
-        reverse_image_search(processor, query_image, limit=num_similar_images)
+        reverse_image_search(processor, query_image, limit=num_similar_images, similarity_threshold=similarity_threshold)
 
 if __name__ == "__main__":
     main()
