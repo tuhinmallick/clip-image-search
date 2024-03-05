@@ -67,10 +67,6 @@ def pillow_image_to_base64(image: Image) -> str:
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return f"data:image/jpeg;base64,{img_str}"
 
-def format_payload(payload):
-    return ''.join([f"<tr><td>{key}</td><td>{value}</td></tr>" for key, value in payload.items() if key != 'Embedding'])
-
-
 
 class ImageProcessor:
     def preprocess_and_encode(self, image):
