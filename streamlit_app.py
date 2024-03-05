@@ -74,9 +74,7 @@ class ImageProcessor:
         image_array = preprocess_image_for_clip(image)
         return model.encode(image)
 
-# Function to generate HTML table
-def generate_html_table(data):
-    # Ensure 'data' is a DataFrame and not a dictionary
+def generate_html_table(data, image_column_name='variant_featured_image'):
     # Start the HTML string for the table
     html = """
     <style>
@@ -95,35 +93,37 @@ def generate_html_table(data):
         background-color: #004a7c;
         color: white;
     }
+    .custom-table img {
+        max-width: 100px;  /* Adjust the size as necessary */
+        max-height: 100px;
+    }
     </style>
     <table class='custom-table'>
+    <tr>
+        <th>Image</th> <!-- Column header for images -->
+        <th>variant_title</th>
+        <th>product_title</th>
+        <th>product_vendor</th>
+        <th>product_handle</th>
+        <th>variant_price</th>
+    </tr>
     """
 
-    # Add the header row
-    html += "<tr>"
-    for col in data.columns:
-        if "Image" not in col:  # Skip the image key for the header
-            html += f"<th>{col}</th>"
-    html += "</tr>"
-
-    # Add the data rows
-    for i in range(data.shape[0]):
+    # Loop through each row in the DataFrame
+    for _, row in data.iterrows():
+        image_url = row[image_column_name] if image_column_name in row else ''
         html += "<tr>"
-        for col in data.columns:
-            if "Image" in col:  # Handle image separately
-                continue  # Skip the image data for normal rows
-            # Use 'iloc' for integer-location based indexing
-            value = data.iloc[i][col]
-            html += f"<td>{value}</td>"
+        html += f"<td><img src='{image_url}' alt='Product Image'></td>"  # Insert the image
+        html += f"<td>{row['variant_title']}</td>"
+        html += f"<td>{row['product_title']}</td>"
+        html += f"<td>{row['product_vendor']}</td>"
+        html += f"<td>{row['product_handle']}</td>"
+        html += f"<td>{row['variant_price']}</td>"
         html += "</tr>"
-        if f"Product {i+1} Image" in data.columns:  # Check if there's an image for this product
-            # Handle case where there might not be an image
-            image_url = data.iloc[i][f"Product {i+1} Image"] if not data.iloc[i][f"Product {i+1} Image"].isnull() else ""
-            if image_url:
-                html += f"<tr><td colspan='{len(data.columns) - 1}'><img src='{image_url}' width='100'></td></tr>"
-    # Close the table tag
+
     html += "</table>"
     return html
+
 
 
 
