@@ -116,7 +116,7 @@ def generate_html_table(data):
             value = data.iloc[i][col]
             html += f"<td>{value}</td>"
         html += "</tr>"
-        if f"Product {i+1} Image" in data.columns:  # Check if there's an image for this product
+        if f"variant_featured_image" in data.columns:  # Check if there's an image for this product
             # Handle case where there might not be an image
             image_url = data.iloc[i][f"Product {i+1} Image"] if not data.iloc[i][f"Product {i+1} Image"].isnull() else ""
             if image_url:
@@ -141,7 +141,7 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     )
 
     # Define the keys you want to extract
-    keys = ['variant_title', 'product_title', 'product_vendor', 'product_handle', 'variant_price']
+    keys = ['variant_title', 'product_title', 'product_vendor', 'product_handle', 'variant_price', 'variant_featured_image']
 
     # Prepare a dictionary to hold your data
     data = {key: [] for key in keys}  # This initializes a list for each key
