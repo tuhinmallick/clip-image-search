@@ -107,10 +107,15 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     # Transpose the DataFrame to have keys in the first column and product details in the subsequent columns
     df_transposed = df.transpose()
 
-    # Rename the first column to 'Attribute'
-    df_transposed.columns = ['Attribute'] + [f'Product {i+1}' for i in range(len(results))]
+    # You now need to make sure that the list you're assigning to df_transposed.columns
+    # has the same length as the number of columns in df_transposed.
+    # Assuming df initially had the same number of columns as the number of keys
+    new_columns = ['Attribute'] + [f'Product {i+1}' for i in range(df_transposed.shape[1] - 1)]
 
-    # Display the transposed DataFrame using Streamlit
+    # Assign the new columns to the DataFrame
+    df_transposed.columns = new_columns
+
+    # Display the DataFrame
     st.dataframe(df_transposed)
 
 def main():
