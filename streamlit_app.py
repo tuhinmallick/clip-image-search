@@ -76,6 +76,7 @@ class ImageProcessor:
 
 # Function to generate HTML table
 def generate_html_table(data):
+    # Assuming 'data' is a DataFrame and not a dictionary
     # Start the HTML string for the table
     html = """
     <style>
@@ -100,27 +101,27 @@ def generate_html_table(data):
 
     # Add the header row
     html += "<tr>"
-    for key in data.keys():
-        if "Image" not in key:  # Skip the image key for the header
-            html += f"<th>{key}</th>"
+    for col in data.columns:
+        if "Image" not in col:  # Skip the image key for the header
+            html += f"<th>{col}</th>"
     html += "</tr>"
 
     # Add the data rows
-    num_rows = max(len(v) for v in data.values() if isinstance(v, list))  # Find the longest list of values
-    for i in range(num_rows):
+    for i in range(data.shape[0]):
         html += "<tr>"
-        for key, values in data.items():
-            if "Image" in key:  # Handle image separately
+        for col in data.columns:
+            if "Image" in col:  # Handle image separately
                 continue  # Skip the image data for normal rows
-            value = values[i] if i < len(values) else ""
+            value = data.at[i, col]
             html += f"<td>{value}</td>"
         html += "</tr>"
-        if f"Product {i+1} Image" in data:  # Check if there's an image for this product
-            image_url = data[f"Product {i+1} Image"][0]  # Get the image URL
-            html += f"<tr><td colspan='{len(data.keys())-1}'><img src='{image_url}' width='100'></td></tr>"
+        if f"Product {i+1} Image" in data.columns:  # Check if there's an image for this product
+            image_url = data.at[i, f"Product {i+1} Image"]  # Get the image URL
+            html += f"<tr><td colspan='{len(data.columns) - 1}'><img src='{image_url}' width='100'></td></tr>"
     # Close the table tag
     html += "</table>"
     return html
+
 
 
 def reverse_image_search(processor, query_image, limit=2, similarity_threshold =0.5):
