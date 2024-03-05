@@ -159,6 +159,7 @@ def main():
         processor = ImageProcessor()
         uploaded_file = st.file_uploader("Upload a product image:", type=['png', 'jpg', 'jpeg'])
         
+        
         # Let the user decide how many similar images to retrieve
         num_similar_images = st.number_input("Number of similar images to retrieve", min_value=1, value=2, step=1)
 
@@ -173,6 +174,7 @@ def main():
     # When the 'Search' button is pressed and an image is provided, perform the search
     if search_button and uploaded_file:
         query_image = Image.open(uploaded_file)
+        st.image(query_image, caption='Uploaded Image', use_column_width=True)
         reverse_image_search(processor, query_image, limit=num_similar_images, similarity_threshold=similarity_threshold)
 
 if __name__ == "__main__":
