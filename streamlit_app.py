@@ -169,7 +169,7 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     df_transposed.columns = new_columns
 
     # Display the HTML in the Streamlit app
-    st.markdown(generate_html_table(df_transposed), unsafe_allow_html=True)
+    st.markdown(generate_html_table(df), unsafe_allow_html=True)
 
 def main():
     # Set Streamlit page configuration
