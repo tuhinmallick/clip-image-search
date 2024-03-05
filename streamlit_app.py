@@ -155,7 +155,7 @@ def main():
 
     # Sidebar controls
     with st.sidebar:
-        st.title("Controls")
+        st.title("Settings")
         processor = ImageProcessor()
         uploaded_file = st.file_uploader("Upload a product image:", type=['png', 'jpg', 'jpeg'])
         
