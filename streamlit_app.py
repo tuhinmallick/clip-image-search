@@ -80,7 +80,7 @@ def generate_html_table(data, image_column_name='variant_featured_image'):
     <style>
     .custom-table {
         display: block;
-        max-height: 300px;
+        max-height: 600x;
         overflow-y: auto;
         white-space: nowrap;
     }
