@@ -116,7 +116,7 @@ def generate_html_table(data):
             value = data.iloc[i][col]
             html += f"<td>{value}</td>"
         html += "</tr>"
-        if f"variant_featured_image" in data.columns:  # Check if there's an image for this product
+        if f"Product {i+1} Image" in data.columns:  # Check if there's an image for this product
             # Handle case where there might not be an image
             image_url = data.iloc[i][f"Product {i+1} Image"] if not data.iloc[i][f"Product {i+1} Image"].isnull() else ""
             if image_url:
