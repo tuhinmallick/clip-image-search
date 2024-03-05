@@ -74,6 +74,55 @@ class ImageProcessor:
         image_array = preprocess_image_for_clip(image)
         return model.encode(image)
 
+# Function to generate HTML table
+def generate_html_table(data):
+    # Start the HTML string for the table
+    html = """
+    <style>
+    .custom-table {
+        display: block;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: nowrap;
+    }
+    .custom-table th, .custom-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .custom-table th {
+        background-color: #004a7c;
+        color: white;
+    }
+    </style>
+    <table class='custom-table'>
+    """
+
+    # Add the header row
+    html += "<tr>"
+    for key in data.keys():
+        if "Image" not in key:  # Skip the image key for the header
+            html += f"<th>{key}</th>"
+    html += "</tr>"
+
+    # Add the data rows
+    num_rows = max(len(v) for v in data.values() if isinstance(v, list))  # Find the longest list of values
+    for i in range(num_rows):
+        html += "<tr>"
+        for key, values in data.items():
+            if "Image" in key:  # Handle image separately
+                continue  # Skip the image data for normal rows
+            value = values[i] if i < len(values) else ""
+            html += f"<td>{value}</td>"
+        html += "</tr>"
+        if f"Product {i+1} Image" in data:  # Check if there's an image for this product
+            image_url = data[f"Product {i+1} Image"][0]  # Get the image URL
+            html += f"<tr><td colspan='{len(data.keys())-1}'><img src='{image_url}' width='100'></td></tr>"
+    # Close the table tag
+    html += "</table>"
+    return html
+
+
 def reverse_image_search(processor, query_image, limit=2, similarity_threshold =0.5):
     # Preprocess the image and encode it to get the embedding
     query_embedding = processor.preprocess_and_encode(query_image)
@@ -115,8 +164,8 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     # Assign the new columns to the DataFrame
     df_transposed.columns = new_columns
 
-    # Display the DataFrame
-    st.dataframe(df_transposed)
+    # Display the HTML in the Streamlit app
+    st.markdown(generate_html_table(df_transposed), unsafe_allow_html=True)
 
 def main():
     # Set Streamlit page configuration
