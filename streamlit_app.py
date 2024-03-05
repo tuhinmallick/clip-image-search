@@ -96,9 +96,9 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
         payload = {k: v for k, v in result.payload.items() if k != 'Embedding'}
         
         # Display the image
-        if 'LocalImage' in payload:
-            local_image_path = payload["variant_featured_image"]
-            st.image(local_image_path, width=150, caption=f"Product {idx + 1}")
+        if 'variant_featured_image' in payload:
+            variant_featured_image_path = payload["variant_featured_image"]
+            st.image(variant_featured_image_path, width=300, caption=f"Product {idx + 1}")  # Increase the width to make it twice the size
             del payload['LocalImage']  # Remove the image path so it won't be in the DataFrame
         
         # Filter out 'unknown' values
