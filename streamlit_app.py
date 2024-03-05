@@ -122,7 +122,7 @@ def main():
         num_similar_images = st.number_input("Number of similar images to retrieve", min_value=1, value=2, step=1)
 
         # Let the user decide how many similar images to retrieve
-        similarity_threshold = st.number_input("Similarity threshold", min_value=0, value=0.5, step=1)
+        similarity_threshold = st.number_input("Similarity threshold", min_value=0.0, value=0.5, step=0.01, max_value=1.0)
 
         search_button = st.button('Search')
 
