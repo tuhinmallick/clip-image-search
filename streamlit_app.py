@@ -87,32 +87,31 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
         score_threshold=similarity_threshold,
     )
 
-    for idx, result in enumerate(results):
-        # Remove the 'Embedding' field from the payload
-        payload = {k: v for k, v in result.payload.items() if k != 'Embedding'}
-        
-        # Display the image
-        if 'variant_featured_image' in payload:
-            variant_featured_image_path = payload["variant_featured_image"]
-            st.image(variant_featured_image_path, width=300, caption=f"Product {idx + 1}")  # Increase the width to make it twice the size
-            del payload['LocalImage']  # Remove the image path so it won't be in the DataFrame
-            del payload['product_index']  # Remove the image path so it won't be in the DataFrame
-            del payload['product_published_at']  # Remove the image path so it won't be in the DataFrame
-            del payload['product_updated_at']  # Remove the image path so it won't be in the DataFrame
-            del payload['variant_index']
-            del payload['variant_created_at']
-            del payload['variant_position']
-            del payload['variant_requires_shipping']
-            del payload['variant_updated_at']
-            del payload['product_body_html']
+    # Define the keys you want to extract
+    keys = ['variant_title', 'product_title', 'product_vendor', 'product_handle', 'variant_price']
 
-        
-        # Filter out 'unknown' values
-        filtered_payload = {k: v for k, v in payload.items() if not (isinstance(v, str) and v.lower() == 'unknown')}
-        
-        # Display the rest of the information as a table
-        df = pd.DataFrame(list(filtered_payload.items()), columns=['Attribute', 'Value'])
-        st.dataframe(df)
+    # Prepare a dictionary to hold your data
+    data = {key: [] for key in keys}  # This initializes a list for each key
+
+    # Iterate over each result and collect the data
+    for result in results:
+        for key in keys:
+            # If the key exists in the result payload, append the value to the correct list
+            # If the key does not exist, append a None or some default value
+            data[key].append(result.payload.get(key, None))
+
+    # Now, convert the dictionary to a DataFrame
+    # The keys become the column headers, and the lists become the columns
+    df = pd.DataFrame(data)
+
+    # Transpose the DataFrame to have keys in the first column and product details in the subsequent columns
+    df_transposed = df.transpose()
+
+    # Rename the first column to 'Attribute'
+    df_transposed.columns = ['Attribute'] + [f'Product {i+1}' for i in range(len(results))]
+
+    # Display the transposed DataFrame using Streamlit
+    st.dataframe(df_transposed)
 
 def main():
     # Set Streamlit page configuration
