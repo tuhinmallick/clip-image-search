@@ -112,7 +112,7 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
         
         # Display the rest of the information as a table
         df = pd.DataFrame(list(filtered_payload.items()), columns=['Attribute', 'Value'])
-        st.table(df)
+        st.dataframe(df)
 
 def main():
     # Set Streamlit page configuration
