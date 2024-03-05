@@ -94,8 +94,8 @@ def generate_html_table(data, image_column_name='variant_featured_image'):
         color: white;
     }
     .custom-table img {
-        max-width: 100px;  /* Adjust the size as necessary */
-        max-height: 100px;
+        max-width: 250px;  /* Adjust the size as necessary */
+        max-height: 250px;
     }
     </style>
     <table class='custom-table'>
