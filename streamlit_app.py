@@ -144,7 +144,7 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
     )
 
     # Define the keys you want to extract
-    keys = ['variant_title', 'product_title', 'product_vendor', 'product_handle', 'variant_price', 'variant_featured_image']
+    keys = ['variant_price', 'product_vendor', 'variant_title', 'product_title',  'product_handle', 'variant_featured_image']
 
     # Display the HTML in the Streamlit app
     st.markdown(generate_html_table(results, keys), unsafe_allow_html=True)
