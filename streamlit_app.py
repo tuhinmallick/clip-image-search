@@ -100,6 +100,16 @@ def reverse_image_search(processor, query_image, limit=2, similarity_threshold =
             variant_featured_image_path = payload["variant_featured_image"]
             st.image(variant_featured_image_path, width=300, caption=f"Product {idx + 1}")  # Increase the width to make it twice the size
             del payload['LocalImage']  # Remove the image path so it won't be in the DataFrame
+            del payload['product_index']  # Remove the image path so it won't be in the DataFrame
+            del payload['product_published_at']  # Remove the image path so it won't be in the DataFrame
+            del payload['product_updated_at']  # Remove the image path so it won't be in the DataFrame
+            del payload['variant_index']
+            del payload['variant_created_at']
+            del payload['variant_position']
+            del payload['variant_requires_shipping']
+            del payload['variant_updated_at']
+            del payload['product_body_html']
+
         
         # Filter out 'unknown' values
         filtered_payload = {k: v for k, v in payload.items() if not (isinstance(v, str) and v.lower() == 'unknown')}
