@@ -76,7 +76,7 @@ class ImageProcessor:
 
 # Function to generate HTML table
 def generate_html_table(data):
-    # Assuming 'data' is a DataFrame and not a dictionary
+    # Ensure 'data' is a DataFrame and not a dictionary
     # Start the HTML string for the table
     html = """
     <style>
@@ -112,12 +112,15 @@ def generate_html_table(data):
         for col in data.columns:
             if "Image" in col:  # Handle image separately
                 continue  # Skip the image data for normal rows
-            value = data.at[i, col]
+            # Use 'iloc' for integer-location based indexing
+            value = data.iloc[i][col]
             html += f"<td>{value}</td>"
         html += "</tr>"
         if f"Product {i+1} Image" in data.columns:  # Check if there's an image for this product
-            image_url = data.at[i, f"Product {i+1} Image"]  # Get the image URL
-            html += f"<tr><td colspan='{len(data.columns) - 1}'><img src='{image_url}' width='100'></td></tr>"
+            # Handle case where there might not be an image
+            image_url = data.iloc[i][f"Product {i+1} Image"] if not data.iloc[i][f"Product {i+1} Image"].isnull() else ""
+            if image_url:
+                html += f"<tr><td colspan='{len(data.columns) - 1}'><img src='{image_url}' width='100'></td></tr>"
     # Close the table tag
     html += "</table>"
     return html
