@@ -81,6 +81,7 @@ def generate_html_table(results, keys):
     .custom-table {
         display: block;
         max-height: 600px;  /* Corrected from 600x to 600px */
+        max-width: 600px;
         overflow-y: auto;
         white-space: nowrap;
     }
@@ -94,8 +95,8 @@ def generate_html_table(results, keys):
         color: white;
     }
     .custom-table img {
-        max-width: 500px;  /* Adjust the size as necessary */
-        max-height: 500px;
+        max-width: 250px;  /* Adjust the size as necessary */
+        max-height: 250px;
     }
     </style>
     <table class='custom-table'>
