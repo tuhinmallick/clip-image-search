@@ -101,11 +101,11 @@ def generate_html_table(results, keys):
     <table class='custom-table'>
     <tr>
         <th>Image</th> <!-- Column header for images -->
+        <th>variant_price</th>
+        <th>product_vendor</th>
         <th>variant_title</th>
         <th>product_title</th>
-        <th>product_vendor</th>
         <th>product_handle</th>
-        <th>variant_price</th>
     </tr>
     """
 
