@@ -94,8 +94,8 @@ def generate_html_table(results, keys):
         color: white;
     }
     .custom-table img {
-        max-width: 250px;  /* Adjust the size as necessary */
-        max-height: 250px;
+        max-width: 500px;  /* Adjust the size as necessary */
+        max-height: 500px;
     }
     </style>
     <table class='custom-table'>
